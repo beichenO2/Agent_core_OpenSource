@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://polarisor.dev/contracts/thinking-pattern.schema.json",
+  "title": "Thinking Pattern",
+  "description": "Schema for PolarPilot thinking pattern templates. Each pattern defines a reusable reasoning structure.",
+  "type": "object",
+  "required": ["name", "tags", "description", "steps", "applicable_types"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name for this thinking pattern"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Tags used for matching this pattern to tasks"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "When to use this pattern and what it achieves"
+    },
+    "steps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "Ordered thinking steps to follow"
+    },
+    "applicable_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "Target types this pattern applies to (e.g. 'code_review', 'architecture', 'debugging')"
+    },
+    "version": {
+      "type": "string",
+      "description": "Optional version identifier for this pattern"
+    }
+  },
+  "additionalProperties": false
+}

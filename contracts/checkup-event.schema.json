@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CheckupEvent",
+  "description": "跨项目统一检修事件契约。用户在任意项目前端提交的 bug 报告通过此 schema 标准化后路由到专属检修 Agent @checkup-agent。",
+  "type": "object",
+  "required": ["event_id", "project", "agent_target", "page_url", "user_text", "timestamp"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "事件唯一标识"
+    },
+    "project": {
+      "type": "string",
+      "description": "目标项目名（如 KnowLever / Clock / SOTAgent）"
+    },
+    "agent_target": {
+      "type": "string",
+      "const": "@checkup-agent",
+      "default": "@checkup-agent",
+      "description": "专属检修 Agent 固定 ID（全生态唯一，非 session uuid）"
+    },
+    "page_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "用户提交 bug 时所在页面的 URL"
+    },
+    "page_title": {
+      "type": "string",
+      "description": "页面标题"
+    },
+    "user_text": {
+      "type": "string",
+      "description": "用户文字描述"
+    },
+    "screenshot_b64": {
+      "type": "string",
+      "description": "PNG base64 编码截图，<= 5MB"
+    },
+    "screenshot_clip": {
+      "type": "object",
+      "description": "用户框选裁剪区域",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" }
+      }
+    },
+    "annotations": {
+      "type": "array",
+      "description": "用户在截图上的批注",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["arrow", "rect", "text", "freehand"]
+          },
+          "geometry": {
+            "type": "object",
+            "description": "批注几何信息（坐标、尺寸等），格式因 kind 而异"
+          },
+          "text": {
+            "type": "string",
+            "description": "文字批注内容（kind=text 时必填）"
+          }
+        }
+      }
+    },
+    "user_session": {
+      "type": "object",
+      "description": "用户会话环境信息",
+      "properties": {
+        "user_id": { "type": "string" },
+        "browser": { "type": "string" },
+        "viewport": {
+          "type": "object",
+          "properties": {
+            "width": { "type": "number" },
+            "height": { "type": "number" }
+          }
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "事件提交时间（ISO 8601）"
+    }
+  },
+  "additionalProperties": false
+}

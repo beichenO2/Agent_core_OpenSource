@@ -1,0 +1,33 @@
+{
+  "event_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "project": "Clock",
+  "agent_target": "@checkup-agent",
+  "page_url": "http://localhost:5173/dashboard",
+  "page_title": "Clock Dashboard",
+  "user_text": "时钟显示的时区切换按钮点击后没有反应，停留在 UTC+8",
+  "screenshot_b64": "<base64-truncated>",
+  "screenshot_clip": {
+    "x": 120,
+    "y": 45,
+    "width": 300,
+    "height": 80
+  },
+  "annotations": [
+    {
+      "kind": "arrow",
+      "geometry": { "x1": 130, "y1": 50, "x2": 200, "y2": 70 },
+      "text": ""
+    },
+    {
+      "kind": "text",
+      "geometry": { "x": 210, "y": 75 },
+      "text": "这个按钮没反应"
+    }
+  ],
+  "user_session": {
+    "user_id": "local-user",
+    "browser": "Chrome/125.0",
+    "viewport": { "width": 1920, "height": 1080 }
+  },
+  "timestamp": "2026-05-08T12:30:00+08:00"
+}

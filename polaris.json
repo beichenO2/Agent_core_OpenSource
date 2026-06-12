@@ -1,0 +1,132 @@
+{
+  "project_name": "Agent_core",
+  "name": "Agent_core",
+  "version": "1.0.0",
+  "status": "active",
+  "tier": "library",
+  "last_updated": "2026-05-03",
+  "description": "Single Source of Agent Logic — shared principles, protocols, and workflows for all Agent forms",
+  "requirements": [
+    {
+      "id": "R1",
+      "name": "项目骨架",
+      "features": [
+        {
+          "name": "skeleton_created",
+          "status": "done",
+          "test_status": "passed",
+          "description": "完整目录骨架与基础文件",
+          "behavior": ["14个目录全部创建", "README/REGISTRY/polaris.json/schema 均有实质内容"]
+        },
+        {
+          "name": "registry_structure",
+          "status": "done",
+          "test_status": "passed",
+          "description": "REGISTRY.md 规则注册表",
+          "behavior": ["P-rules表/Protocol表/W-rules表三个注册表", "关系枚举定义完整"]
+        },
+        {
+          "name": "rule_reference_schema",
+          "status": "done",
+          "test_status": "passed",
+          "description": "[Agent_core:Px] 引用格式 JSON Schema",
+          "behavior": ["验证 P/W/Proto 三种前缀", "pattern 正则匹配"]
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "name": "原则与协议迁移",
+      "features": [
+        {
+          "name": "principles_migrated",
+          "status": "done",
+          "test_status": "passed",
+          "description": "P0-P24 迁移到 Agent_core/principles/",
+          "behavior": ["CORE.md 含 P0-P12+P4a+P5a+P5b", "ADVANCED.md 含 P13-P24+P21a-P21c", "语义零损失"]
+        },
+        {
+          "name": "protocols_migrated",
+          "status": "done",
+          "test_status": "passed",
+          "description": "协议 A-J 迁移到 Agent_core/protocols/",
+          "behavior": ["PROTOCOLS.md 含 Proto-A/B/C/D/F/G/J", "Hub 端口发现/SSE/supersession 细节保留"]
+        },
+        {
+          "name": "symlink_backward_compat",
+          "status": "done",
+          "test_status": "passed",
+          "description": "旧路径软链接向后兼容",
+          "behavior": ["~/.codex/skills/pc-principles/ -> Agent_core/principles/", "SKILL.md -> CORE.md 兼容链接"]
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "name": "工作流规则",
+      "features": [
+        {
+          "name": "w_rules_created",
+          "status": "done",
+          "test_status": "not_tested",
+          "description": "9个W-rules在6个workflow文件中创建",
+          "behavior": [
+            "DEV.md: W-DEV-1(毕业测试三件套) + W-DEV-2(禁桩实现)",
+            "DELETE.md: W-DEL-1(生态搜索验证) + W-DEL-2(空目录清理) + W-DEL-3(删后无害验证)",
+            "REPORT.md: W-REP-1(四列状态表+需求对齐)",
+            "HONESTY.md: W-HON-1(test_status枚举)",
+            "TECH_SOTA.md: W-SOTA-1(AI/非AI分层时效)",
+            "COMPAT.md: W-COMPAT-1(零兼容性最高优先级)"
+          ]
+        },
+        {
+          "name": "scattered_fragments_consolidated",
+          "status": "done",
+          "test_status": "not_tested",
+          "description": "散落规则碎片转为Agent_core引用",
+          "behavior": [".cursor/rules/deletion-semantic-check.md 转为1行引用"]
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "name": "跨项目共享规范",
+      "features": [
+        {
+          "name": "billing_model",
+          "status": "done",
+          "test_status": "not_tested",
+          "description": "两层计费模型架构文档",
+          "behavior": ["Cursor层（一轮对话）和Proxy层（一次API调用）的计费模型定义"]
+        },
+        {
+          "name": "binding_spec",
+          "status": "done",
+          "test_status": "not_tested",
+          "description": "binding.md 文件规范",
+          "behavior": ["核心主张/策略摘要/已验证决策三个必含项"]
+        },
+        {
+          "name": "thinking_pattern_schema",
+          "status": "done",
+          "test_status": "passed",
+          "description": "思考模板 JSON Schema (Draft-07)",
+          "behavior": ["name/tags/description/steps/applicable_types 五个必填字段", "PolarPilot patterns/ 目录按此 schema 校验"]
+        },
+        {
+          "name": "prompt_engineering_workflow",
+          "status": "done",
+          "test_status": "not_tested",
+          "description": "W-PROMPT-1 Prompt 工程跨项目协作规则",
+          "behavior": ["三个开发者项目在 Prompt 工程开发前必读关联项目 binding.md"]
+        }
+      ]
+    }
+  ],
+  "service_management": null,
+  "contacts": {
+    "owner": "mac",
+    "last_updated": "2026-05-10",
+    "updated_by": "solo-web-yolo"
+  }
+}
