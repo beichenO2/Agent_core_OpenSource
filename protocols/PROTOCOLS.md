@@ -277,31 +277,30 @@ fi
 - 但 Agent 遇到 SOTAgent 不可达时仍应主动 `sotctl start`，加速恢复
 - 恢复后等待 3s 再重试 API 调用
 
-### SOTAgent 托管服务的生命周期管理
+### 托管服务的生命周期管理（权威 = PolarProcess）
 
-所有通过 SOTAgent 托管的服务（auto_start 或手动注册）必须通过 HTTP API 操作：
+所有托管服务（auto_start 或手动注册）必须通过 **PolarProcess** HTTP API 操作（SOTAgent `:4800/api/services/*` 仅为历史 facade 透传，新代码勿用）：
 
 ```bash
-# 停止（优雅，SOTAgent 记录状态）
-POST http://127.0.0.1:4800/api/services/:id/stop
+# 停止（优雅，状态落库）
+POST http://127.0.0.1:11055/api/services/:id/stop
 
-# 启动（SOTAgent 重新拉起）
-POST http://127.0.0.1:4800/api/services/:id/start
+# 启动
+POST http://127.0.0.1:11055/api/services/:id/start
 
 # 重启（先停后启）
-POST http://127.0.0.1:4800/api/services/:id/restart
+POST http://127.0.0.1:11055/api/services/:id/restart
 
 # 查询所有服务状态
-GET http://127.0.0.1:4800/api/services
+GET http://127.0.0.1:11055/api/services
 
 # 查看单个服务详情
-GET http://127.0.0.1:4800/api/services/:id
-
-# 查看服务重启窗口状态
-GET http://127.0.0.1:4800/api/services/:id/restart-window
+GET http://127.0.0.1:11055/api/services/:id
 ```
 
-**禁止直接 kill/pkill 托管服务进程**，否则会导致状态不一致和双重拉起（详见 `ADVANCED.md` P27）。
+端口一律经 PolarPort（:11050）`claim_port` 分配，禁止在 `command` 或代码中硬编码。
+
+**禁止直接 kill/pkill 托管服务进程**，否则会导致状态不一致和双重拉起（详见 `ADVANCED.md` P27；最小挂载片段 `reference/SERVICE-PORT-MINIMAL.md`）。
 
 
 
@@ -465,32 +464,33 @@ const health = await llm.healthCheck();
 错误：在代码里写 const PORT = 3000 → 直接 listen
 ```
 
-**查询已分配端口**：`GET http://127.0.0.1:4800/api/ports`
+**查询已分配端口**：`GET http://127.0.0.1:11050/api/list`（PolarPort，唯一权威；SOTAgent `:4800/api/ports` 仅 facade 展示）
 
 | 服务 | 当前端口（动态分配，非硬编码） | 用途 |
 |------|------|------|
-| SOTAgent port-sdk | 4800 | 端口分配与服务发现 |
+| PolarPort | 11050 | 端口分配唯一权威 |
+| PolarProcess | 11055 | 进程生命周期唯一权威 |
 | PolarPrivate | 12790 | LLM 代理 + 密钥管理 |
 | PolarClaw | 3910 | Agent 操作系统后端 |
 | PolarCopilot Hub | 8040 | IDE Agent Web UI（MCP 通道入口） |
 
-> 上表仅为当前快照，端口可能因 PolarPort 重新分配而变化。**必须**通过 PolarPort API 查询，不能在代码中假设固定端口。
+> 上表仅为当前快照，端口可能因 PolarPort 重新分配而变化。**必须**通过 PolarPort API 查询，不能在代码中假设固定端口。preferred 端口必须以 0/5 结尾。
 
-### N3 — 程序生命周期管理（必须走 SOTAgent）
+### N3 — 程序生命周期管理（必须走 PolarProcess）
 
-**规则**：所有服务的启动、守护和重启**必须**通过 SOTAgent 管理，**禁止**手动 kill、手动 nohup 或手动 node。
+**规则**：所有服务的启动、守护和重启**必须**通过 PolarProcess（:11055）管理，**禁止**手动 kill、手动 nohup 或手动 node。SOTAgent 仅提供 console 前端展示。
 
 **正确流程**：
-1. **启动**：先在 SOTAgent 注册服务 → SOTAgent 负责启动 + 配置守护进程 + 开机自启
-2. **重启**：向 SOTAgent 发送重启请求（`sotctl restart <service>`），不直接 kill 进程
-3. **停止**：通过 SOTAgent API 或 `sotctl stop <service>`
+1. **启动**：先向 PolarProcess `POST /api/services` 注册（`command` 不含硬编码端口）→ PolarProcess 负责启动 + Watchdog 守护
+2. **重启**：`POST /api/services/:id/restart`，不直接 kill 进程
+3. **停止**：`POST /api/services/:id/stop`，或项目内 `Start/start.sh stop`
 
 **禁止**：
 - `kill <pid>` 后手动 `nohup node ... &`
-- 在 shell 脚本中直接启动服务绕过 SOTAgent
-- 不注册就启动——SOTAgent 不知道的服务等于不存在
+- 在 shell 脚本中直接启动服务绕过 PolarProcess（项目 `Start/start.sh` 属于合法编排，其内部走 `claim_port`）
+- 不注册就启动——PolarProcess 不知道的服务等于不存在
 
-**例外**：开发调试时可以临时直接启动（`npm run dev`），但部署/生产**必须**走 SOTAgent。
+**例外**：开发调试时可以临时直接启动（`npm run dev`），但部署/生产**必须**走 PolarProcess。
 
 ### N4 — PolarPrivate 健康检查
 

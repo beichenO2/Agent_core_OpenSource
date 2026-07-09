@@ -346,80 +346,92 @@ mv /path/to/service.log /path/to/service.log.$(date +%Y%m%d) && touch /path/to/s
 
 新增 launchd 服务时，应在 plist 中配置日志轮转或使用系统日志（`syslog`）。
 
-## P27. 服务生命周期管理规范
+## P27. 服务生命周期管理规范（硬约束）
 
-Polarisor 生态所有服务的启/停/重启**必须**经过统一接口，禁止直接对进程发送 `kill`/`pkill`/`SIGTERM` 信号来管理托管服务。
+Polarisor 生态的进程与端口各有**唯一权威**：
+
+| 职责 | 唯一权威 | 端口 | SOTAgent 的角色 |
+|------|----------|------|----------------|
+| 端口分配 | **PolarPort** | :11050 | 无（仅 console 展示） |
+| 进程启/停/重启/守护 | **PolarProcess** | :11055 | 无（`/api/services/*` 仅 facade 透传到 PolarProcess） |
+
+SOTAgent **只提供前端面板**（console :4880）方便用户查看，不是服务与端口的操作权威。所有服务的启/停/重启**必须**经过 PolarProcess，所有端口**必须**经过 PolarPort 分配；禁止直接对进程发送 `kill`/`pkill`/`SIGTERM` 信号，禁止硬编码端口。
 
 ### 唯一合法操作路径
 
 | 优先级 | 路径 | 适用范围 |
 |--------|------|----------|
-| 1（最高） | SOTAgent HTTP API | 所有托管服务（auto_start 或手动注册） |
-| 2 | `sotctl` CLI | 仅限 SOTAgent 自身的管理 |
-| 3 | `Start/*.sh` 脚本（项目内） | 局部编排存在时优先于默认 spawn |
+| 1（最高） | PolarProcess HTTP API | 所有托管服务（auto_start 或手动注册） |
+| 2 | `Start/*.sh` 脚本（项目内，内部走 `claim_port`） | 局部编排存在时优先于默认 spawn |
+| 兼容 | SOTAgent `/api/services/*`（facade） | 仅历史调用方；最终仍转发 PolarProcess，新代码勿用 |
 
-**SOTAgent HTTP API**：
+**PolarProcess HTTP API**：
 
 ```bash
-# 停止服务（优雅退出，SOTAgent 记录状态）
-POST http://127.0.0.1:4800/api/services/:id/stop
+# 停止服务（优雅退出，状态落库）
+POST http://127.0.0.1:11055/api/services/:id/stop
 
-# 启动服务（通过 SOTAgent 重新拉起）
-POST http://127.0.0.1:4800/api/services/:id/start
+# 启动服务
+POST http://127.0.0.1:11055/api/services/:id/start
 
 # 重启服务（先停后启）
-POST http://127.0.0.1:4800/api/services/:id/restart
+POST http://127.0.0.1:11055/api/services/:id/restart
 
 # 查询所有服务状态
-GET http://127.0.0.1:4800/api/services
+GET http://127.0.0.1:11055/api/services
 ```
 
-**SDK 封装**（`@polarcop/sdk` 或 `port-sdk`）：
+**端口分配**（真实存在的两个入口，二选一）：
+
+```bash
+# Shell：Agent_core 共享脚本（Start/start.sh 标准写法）
+source Agent_core/scripts/port-claim.sh
+PORT=$(claim_port "my-service" "MyProject" 4880)   # preferred 必须以 0/5 结尾
+```
 
 ```typescript
-// 推荐：使用 SDK 封装
-import { serviceStart, serviceStop, serviceRestart } from 'port-sdk';
-
-// 停止服务（必须通过 SOTAgent，不是 pkill）
-await serviceStop('knowlever-wiki');
-
-// 启动服务
-await serviceStart('knowlever-wiki');
-
-// 重启服务
-await serviceRestart('knowlever-wiki');
+// TypeScript：PolarPort SDK（内置 30s 心跳）
+import { claimPort, releasePort } from 'PolarPort/src/sdk/index.js';
+const port = await claimPort({ service: 'my-service', project: 'MyProject', preferred: 4880, heartbeat: true });
 ```
 
 ### ⛔ 禁止行为
 
 - **禁止**用 `kill -9`、`pkill -f`、`killall` 停止托管服务
 - **禁止**手动 `kill -SIGTERM <pid>` 停止非自身拥有的进程
-- **禁止**绕过 SOTAgent 直接用 `node &` / `npm start &` 等方式重启服务
-- **禁止**在不了解后果的情况下重启 SOTAgent（会导致所有托管服务停止）
+- **禁止**绕过 PolarProcess 直接用 `node &` / `npm start &` 等方式重启服务
+- **禁止**在服务注册的 `command` 字段或代码中硬编码端口——一律 `claim_port` 动态取得
+- **禁止**分配不以 0/5 结尾的 preferred 端口（PolarPort 合规规则，范围 8000–19999）
+- **禁止**在不了解后果的情况下重启 PolarProcess / PolarPort（守护与端口注册随之中断）
 
 ### auto_start 服务行为约定
 
-- `auto_start: true` 的服务由 SOTAgent Watchdog 自动管理，正常情况下不需人工干预
-- 服务崩溃后 SOTAgent 会自动按指数退避重试（15 分钟稳定运行清零 `restart_count` 配额）
-- 确需人工介入时，**必须**通过 SOTAgent API 操作，禁止直接杀进程
+- `auto_start: true` 的服务由 PolarProcess Watchdog 自动管理（30s 健康检查，读各项目 `polaris.json` 的 `service_management.health_endpoint`），正常情况下不需人工干预
+- 服务崩溃后自动重试；crash loop（5 分钟内 ≥10 次重启）检测后停止机械重启，发 lobster-event 升级 PolarPilot Agentic 修复
+- **`polaris.json` 的 `health_endpoint` 必须与服务实际监听端口一致**——Watchdog 以它为准，写错会导致健康误判与反复重启
+- 确需人工介入时，**必须**通过 PolarProcess API 操作，禁止直接杀进程
 
 ### 服务失控时的紧急处置（例外，不是规范）
 
-当服务行为异常且 SOTAgent API 也不响应时：
+当服务行为异常且 PolarProcess API 也不响应时：
 
-1. 用 `sotctl stop` 停止 SOTAgent 自身（所有托管服务随之停止）
-2. 手动清理残余进程：`pkill -f "<service_name>"`（这是紧急例外，不应写入脚本）
-3. `sotctl start` 重拉 SOTAgent
-4. 通过 SOTAgent API 重新启动各服务
+1. 通过项目自身 `Start/start.sh stop` 停止目标服务
+2. 仍无效则手动清理残余进程：`pkill -f "<service_name>"`（这是紧急例外，不应写入脚本）
+3. 重启 PolarProcess（`bash PolarProcess/Start/start.sh restart`）
+4. 通过 PolarProcess API 重新启动各服务
 
 ### 为什么禁止直接 kill 进程？
 
-直接 `kill`/`pkill` 会绕过 SOTAgent 的状态记录，导致：
+直接 `kill`/`pkill` 会绕过 PolarProcess 的状态记录，导致：
 
 - `shared_services.status` 与实际进程状态不一致
 - Watchdog 误判服务已崩溃并尝试重启（双重拉起）
 - `restart_count` 配额被错误消耗
-- `started_at` 时间戳不更新，影响稳定运行恢复判断
+- 端口未 release，PolarPort registry 残留 stale 记录
+
+### 本地自主 Agent 的最小挂载片段
+
+非 pc 系的本地自主 Agent（不加载 Agent_core 全量规则）**必须**在其系统提示或 skill 中挂载 `Agent_core/reference/SERVICE-PORT-MINIMAL.md`，该片段是本原则的最小可执行子集。
 
 ---
 
