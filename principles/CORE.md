@@ -203,9 +203,15 @@ Agent 产出的信息按类型写入**对应项目**的指定位置。注意："
 - ⛔ 禁止把临时报告写入 `reports/`、`致继任者/` 或独立 handoff 文件
 - Hub Web 交互只有 choice（带 options 的 prompt），无 info/report 类型
 
-## P12. 禁止 Cursor Task / subagent
+## P12. 鼓励 SubAgent 分工（廉价模型省 token）
 
-⛔ 禁止调用 Cursor 的 `Task` 工具。一个任务一个 Agent，不派子进程。
+✅ 鼓励大量使用 Cursor `Task` 工具派发 SubAgent，把可独立完成的工作下放给廉价模型，节约主 Agent 上下文 tokens。
+
+- 代码/文件分析、调研、检索任务 → 子代理模型 `grok-4.5-fast-xhigh`
+- 代码编写/修改任务 → 子代理模型 `composer-2.5-fast`
+- 主 Agent 职责：任务编排、prompt 拆解（遵循 P24 独立自包含）、验收产出、与用户/Hub 交互
+- 独立任务应并行派发多个 SubAgent
+- ⛔ 验收不可下放：passed/failed 结论须主 Agent 亲自确认关键验证结果
 
 ## P13. 项目锁保护
 

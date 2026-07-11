@@ -1,5 +1,13 @@
 # Principles & Protocols Changelog
 
+## 2026-07-11 — P12 由禁止 SubAgent 反转为鼓励 SubAgent 分工
+
+**背景**：主 Agent 上下文 tokens 成本高，可独立完成的工作应下放给廉价子代理模型。
+
+**改动**：P12 由"禁止 Cursor Task / subagent"反转为"鼓励 SubAgent 分工"——分析/调研/检索任务用 `grok-4.5-fast-xhigh`，代码编写/修改用 `composer-2.5-fast`；主 Agent 保留任务编排、prompt 拆解与验收职责，passed/failed 结论不可下放。
+
+**残留清理**：同步修正 `rules/skills/pc-solo-web.md`（禁止→鼓励）与 `reference/REFLEXIVITY.md`（「不能启动子Agent」→「不能下放 Hub/验收」）。
+
 ## 2026-05-13 — P10 强制 Push 补充 (gap.md)
 
 **背景**：用户发现本地 commit 不 push 时，其他项目 Revert 后本地 commit 仍可通过 reflog 恢复，但流程上存在协作风险。
