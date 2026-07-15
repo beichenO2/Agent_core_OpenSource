@@ -57,6 +57,10 @@ Rules can have relationships with other rules. Exactly four types are permitted:
 | P22 | active | Coverage-detect | ADVANCED.md | from ADVANCED.md | — |
 | P23 | active | Cross-validation | ADVANCED.md | from ADVANCED.md | — |
 | P24 | active | Prompt-independence | ADVANCED.md | from ADVANCED.md | — |
+| P25 | active | Documentation | ADVANCED.md | 首次阅读可执行的规范文体 | — |
+| P26 | active | Diagnostics | ADVANCED.md | 服务状态诊断优先级 | — |
+| P27 | active | Runtime-governance | ADVANCED.md | PolarPort/PolarProcess 唯一权威 | supplemented-by polar-runtime-governance skill |
+| P28 | active | Evidence | ADVANCED.md | P-REFLEX 断言必引证 | — |
 
 ## Protocol Table
 

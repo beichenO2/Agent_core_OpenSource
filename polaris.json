@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "status": "active",
   "tier": "library",
-  "last_updated": "2026-05-03",
+  "last_updated": "2026-07-16",
   "description": "Single Source of Agent Logic — shared principles, protocols, and workflows for all Agent forms",
   "requirements": [
     {
@@ -121,12 +121,71 @@
           "behavior": ["三个开发者项目在 Prompt 工程开发前必读关联项目 binding.md"]
         }
       ]
+    },
+    {
+      "id": "R5",
+      "name": "Codex 运行时统一治理",
+      "features": [
+        {
+          "name": "polar_runtime_governance_skill",
+          "status": "done",
+          "test_status": "passed",
+          "description": "为 Codex 提供跨项目进程与端口统一治理 Skill",
+          "behavior": [
+            "所有长期运行或监听端口的服务必须由 PolarProcess 管理生命周期",
+            "所有长期监听端口必须由 PolarPort 分配并保持心跳",
+            "一次性构建、测试、格式化和迁移命令不纳入常驻服务托管",
+            "Codex 在启动、停止、重启、预览或部署服务前必须执行只读治理检查",
+            "现有服务只报告漂移，不自动重启、停止、迁移或抢占端口"
+          ],
+          "evidence": [
+            {
+              "date": "2026-07-16",
+              "description": "quick_validate.py 校验通过；Skill 前置、禁止项、基础设施自举例外和 SSoT 生命周期已写入规范"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "Agent_core 既有契约测试 npx vitest run tests/：1 个测试文件、8 项测试全部通过"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "已安装 ~/.codex/skills/polar-runtime-governance 软链接并从安装路径再次通过 quick_validate.py"
+            }
+          ]
+        },
+        {
+          "name": "runtime_governance_audit",
+          "status": "done",
+          "test_status": "passed",
+          "description": "提供无副作用的项目级与生态级合规审计脚本",
+          "behavior": [
+            "检查 PolarPort 与 PolarProcess 健康状态",
+            "检查项目 polaris.json、Start 脚本、端口申领和健康端点声明",
+            "报告进程注册表与端口注册表漂移但不执行修复",
+            "用明确退出码区分合规、发现漂移和权威服务不可达"
+          ],
+          "evidence": [
+            {
+              "date": "2026-07-16",
+              "description": "TDD 验证退出码 0/1/2、含空格路径、权威服务自举例外及禁止变更型 HTTP 请求"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "真实生态只读审计完成：按端口与服务身份双重匹配的最终快照发现 32 项历史漂移；复测前后 PolarProcess 核心记录差异为空"
+            }
+          ]
+        }
+      ]
     }
   ],
   "service_management": null,
   "contacts": {
     "owner": "mac",
-    "last_updated": "2026-05-10",
-    "updated_by": "solo-web-yolo"
+    "last_updated": "2026-07-16",
+    "updated_by": "codex"
+  },
+  "_meta": {
+    "schema_version": "1.0",
+    "last_synced_at": "2026-07-16T01:48:00+08:00"
   }
 }
