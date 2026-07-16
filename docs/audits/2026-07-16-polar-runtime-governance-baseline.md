@@ -34,3 +34,36 @@ PolarPort 与 PolarProcess 自身通过 launchd 引导，适用基础设施自�
 ## 本轮结论
 
 本轮只建立统一治理规范、Codex Skill 和只读审计能力。历史漂移已形成可执行清单，但不属于本轮自动修复范围。
+
+## 迁移进度
+
+### 2026-07-16 — PolarDesign
+
+- 已把内嵌、硬编码 `7700` 的预览 listener 拆为独立前台服务。
+- `Start/start.sh` 已改为 PolarPort 申领 + PolarProcess 前台托管，不再使用 nohup、PID 文件或 kill。
+- PolarProcess 已注册 `polardesign-preview`，保持 `stopped`、`pid=null`、`auto_start=false`。
+- PolarPort 未创建 active 记录，7700 未监听，未影响运行服务。
+- 项目审计从 drift 变为 compliant；生态审计快照从 32 项降至 31 项。
+- `service_management` 缺失项目剩余：PolarMemory、PolarOps、PolarUI。
+
+### 2026-07-16 — PolarOps
+
+- 已删除 `src/server.ts` 的 PolarPort 直连分配与 `11065` 静默 fallback；server 只校验并消费 launcher 注入的 `PORT`。
+- 新增根级前台 `Start/start.sh`：先检查 PolarPort，再申领并校验 `polarops / PolarOps / 11065`，最后 `exec node dist/server.js`；不含后台化、PID 文件或 kill。
+- PolarProcess 已注册 `polarops`，保持 `stopped`、`pid=null`、`auto_start=false`，未调用 start/restart。
+- PolarPort 未创建 active 记录，11065 未监听，未影响运行服务。
+- canonical main 的 3 个测试文件、24 项测试全部通过，TypeScript build 和项目治理审计通过。
+- PolarOps 的项目级 `service_management` 漂移已消除；生态审计合入后首次快照为 30 项，SSoT 落盘复测为 31 项，差异来自动态恢复的 `PolarMemory/polarmemory-api:3100` active 记录，不归因于 PolarOps。
+- `service_management` 缺失项目剩余：PolarMemory、PolarUI。
+
+### 2026-07-16 — PolarMemory
+
+- 迁移前 `polar-memory:8035` 的 PolarProcess 记录为异常自启，曾处于 `starting/error`、PID 为空并累计大量失败重试；已通过同一服务 ID 精确关闭 auto-start 并收敛为 stopped。
+- 已把 `polarmemory-api:3100` 与 `polar-memory:8035` 双身份统一为 `polar-memory / PolarMemory / 8035`。
+- `src/api_server.ts` 不再使用 `POLARMEMORY_PORT` 或 3100 fallback，只校验并消费 launcher 注入的 `PORT`。
+- `Start/start.sh` 已删除 nohup、PID 文件、lsof 与 kill，自身只检查 PolarPort、申领并校验 8035，最后前台 `exec node dist/api_server.js`。
+- 项目 README、capabilities 和 `polarmemory-ops` Skill 已统一为 PolarProcess 生命周期与 PolarPort 端口权威。
+- canonical main 的 BlockManager 88 项断言、runtime governance contract、TypeScript build 和项目审计全部通过。
+- PolarProcess 最终记录为 `stopped`、`pid=null`、`auto_start=false`；PolarPort 无 PolarMemory active 记录，3100/8035 无 listener。
+- 项目级 `service_management` 漂移和两条 PolarMemory 注册表漂移均已消除；本次生态审计动态快照为 28 项。
+- `service_management` 缺失项目剩余：PolarUI。

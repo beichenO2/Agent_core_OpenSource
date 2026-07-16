@@ -172,6 +172,48 @@
             {
               "date": "2026-07-16",
               "description": "真实生态只读审计完成：按端口与服务身份双重匹配的最终快照发现 32 项历史漂移；复测前后 PolarProcess 核心记录差异为空"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "首个项目 PolarDesign 完成迁移：项目审计 compliant；polardesign-preview 仅注册为 stopped，生态审计快照降至 31 项"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "第二个项目 PolarOps 完成迁移：项目审计 compliant；polarops 仅注册为 stopped，24 项测试与 build 通过；生态审计先后快照为 30/31，波动来自其他服务的动态端口记录"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "第三个项目 PolarMemory 完成迁移：统一 polar-memory:8035，关闭异常 auto-start，删除 launcher 自管进程逻辑；88 项断言、治理契约与 build 通过，生态审计动态快照为 28 项"
+            }
+          ]
+        },
+        {
+          "name": "runtime_governance_migration_queue",
+          "status": "in-progress",
+          "test_status": "not_tested",
+          "description": "逐项目完成 Polarisor 生态运行时检查、修改、重构和 SSoT 验收",
+          "behavior": [
+            "以包含 polaris.json 的 19 个顶层目录作为正式项目清单",
+            "一次只迁移一个目标项目，不批量启动、停止、释放或重注册服务",
+            "每个项目按预检、设计、TDD、canonical 验证、stopped 注册、SSoT done 顺序执行",
+            "保留目标及其他项目现有未提交改动，无法隔离的高冲突项目后置"
+          ],
+          "evidence": [
+            {
+              "date": "2026-07-16",
+              "description": "完成全生态只读盘点：32 个顶层非隐藏目录、19 个正式项目、17 个独立 Git 项目、2 个根仓库项目；3 个已迁移、11 个仍需运行时治理"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "迁移队列与仓库/SSoT 风险已记录到 docs/audits/2026-07-16-polarisor-project-inventory.md；生态治理动态快照为 28 项"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "Clock 迁移完成：双服务原 ID 已收敛为 PolarProcess stopped/pid=null/auto_start=false，PolarPort 无 active 记录，项目审计 compliant；已迁移项目增至 4 个，剩余队列 10 个，生态治理动态快照降至 27 项"
+            },
+            {
+              "date": "2026-07-16",
+              "description": "22:01 完成剩余 10 项目的运行态复扫：逐项记录 Git/SSoT、PolarProcess、PolarPort、监听与保护边界；7 个项目存在需保留的 live 服务，KnowLever 为 archived/stopped，PolarUI 高冲突后置"
             }
           ]
         }
@@ -186,6 +228,6 @@
   },
   "_meta": {
     "schema_version": "1.0",
-    "last_synced_at": "2026-07-16T01:48:00+08:00"
+    "last_synced_at": "2026-07-16T08:57:00+08:00"
   }
 }
