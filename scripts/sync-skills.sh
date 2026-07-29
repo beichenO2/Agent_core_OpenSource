@@ -28,7 +28,7 @@ echo ""
 
 mkdir -p "$CODEX_SKILLS"
 
-SKILL_NAMES="pc pc-principles pc-solo-web pc-solo-qa pc-yolo-confirm pc-yolo-execute pc-project-scan"
+SKILL_NAMES="pc pc-principles pc-solo-web pc-solo-qa pc-yolo-confirm pc-yolo-execute pc-project-scan rr-orchestrator"
 skill_target() {
   case "$1" in
     pc-principles) echo "$AGENT_CORE_PRINCIPLES" ;;

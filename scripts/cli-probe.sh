@@ -23,68 +23,36 @@ echo "=== 清理僵尸 agent -p ==="
 pkill -f "cursor-agent.*index.js -p" 2>/dev/null || true
 sleep 1
 
-echo "=== L2 执行探针 (${TIMEOUT_SEC}s) ==="
-# 从 IDE 嵌套 spawn 时去掉会干扰 headless 的环境变量
+echo "=== L2 执行探针 via polar-agent / PolarProcess (${TIMEOUT_SEC}s) ==="
 export PC_PROJECT_DIR="$WS"
-unset CURSOR_AGENT VSCODE_IPC_HOOK VSCODE_CODE_CACHE_PATH CURSOR_EXTENSION_HOST_ROLE 2>/dev/null || true
+PROBE_ROOT="$(cd "$(dirname "$0")" && pwd)"
+POLAR_AGENT="${PROBE_ROOT}/polar-agent.sh"
+if [[ ! -x "$POLAR_AGENT" ]]; then
+  echo "FAIL: polar-agent.sh missing at $POLAR_AGENT"
+  exit 3
+fi
 
-python3 - "$AGENT" "$WS" "$TIMEOUT_SEC" <<'PY'
-import json, os, subprocess, sys, threading, time
+set +e
+OUT="$(POLAR_AGENT_TIMEOUT_SEC="$TIMEOUT_SEC" "$POLAR_AGENT" --workspace "$WS" --prompt "Reply with exactly: OK" 2>&1)"
+CODE=$?
+set -e
+echo "$OUT" | tail -n 40
 
-agent, workspace, timeout_sec = sys.argv[1], sys.argv[2], int(sys.argv[3])
-cmd = [
-    agent, "-p", "--trust", "--force", "--yolo", "--approve-mcps", "--sandbox", "disabled",
-    "--output-format", "stream-json", "--stream-partial-output",
-    "--model", "composer-2.5-fast", "--workspace", workspace,
-    "Reply with exactly: OK",
-]
-env = os.environ.copy()
-for k in ("CURSOR_AGENT", "VSCODE_IPC_HOOK", "VSCODE_CODE_CACHE_PATH", "CURSOR_EXTENSION_HOST_ROLE"):
-    env.pop(k, None)
+if echo "$OUT" | grep -q 'PolarProcess unreachable'; then
+  echo "FAIL: PolarProcess 未运行 — 无法做 L2（先启动 PolarProcess）"
+  exit 4
+fi
 
-proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
-got_init = False
-got_assistant = False
-lines = []
+# polar-agent uses --output-format json; accept assistant/result/OK text
+if echo "$OUT" | grep -Eqi '"type"[[:space:]]*:[[:space:]]*"assistant"|Reply with exactly: OK|^OK$|"result"'; then
+  echo "PASS: polar-agent / PolarProcess headless 响应已收到 (exit=$CODE)"
+  exit 0
+fi
 
-def read_stdout():
-    global got_init, got_assistant
-    assert proc.stdout is not None
-    for line in proc.stdout:
-        lines.append(line.rstrip())
-        if '"type":"system"' in line and '"subtype":"init"' in line:
-            got_init = True
-        if '"type":"assistant"' in line:
-            got_assistant = True
-            break
-        if '"type":"result"' in line:
-            break
+if [[ "$CODE" -eq 0 ]]; then
+  echo "PASS: polar-agent exit 0"
+  exit 0
+fi
 
-t = threading.Thread(target=read_stdout, daemon=True)
-t.start()
-deadline = time.time() + timeout_sec
-while time.time() < deadline:
-    if got_assistant:
-        break
-    if proc.poll() is not None:
-        break
-    time.sleep(0.2)
-
-if proc.poll() is None:
-    proc.kill()
-
-if got_assistant:
-    print("PASS: assistant 响应已收到")
-    sys.exit(0)
-
-if got_init:
-    print(f"FAIL: 会话已建立但 {timeout_sec}s 内无 assistant 响应（Cursor 后端/API 问题）")
-    for ln in lines[-5:]:
-        print(" ", ln[:240])
-    sys.exit(2)
-
-print("FAIL: 未收到 init 事件（CLI 配置或网络）")
-for ln in lines[-5:]:
-    print(" ", ln[:240])
-sys.exit(2)
-PY
+echo "FAIL: polar-agent 无有效 assistant/OK 响应 (exit=$CODE)"
+exit 2

@@ -305,10 +305,58 @@ Agent 在诊断服务问题时，**必须按以下优先级获取信息**：
    ```bash
    curl -s --max-time 3 "http://127.0.0.1:{port}/health"
    ```
-2. **进程状态检查**：检查进程是否存在
+2. **端口 / 进程状态检查**（禁止裸 `lsof` / `kill` / `pkill`）：
+
+   **只读探测（优先）：**
+
    ```bash
-   lsof -i :{port} || pgrep -f "{service_name}"
+   # PolarPort：注册表 + TCP 占用（无 PID）
+   curl -fsS "http://127.0.0.1:11050/api/ports/{port}/status"
+
+   # PolarProcess：单端口监听者 + 归属（替代 lsof -iTCP:PORT）
+   curl -fsS "http://127.0.0.1:11055/api/diagnostics/ports/{port}"
+
+   # 多端口批量（替代 for p in …; lsof … 循环）
+   curl -fsS "http://127.0.0.1:11055/api/diagnostics/ports-batch?ports={p1},{p2}"
+
+   # 全机 TCP 监听 + 托管归属（替代 lsof -iTCP -sTCP:LISTEN）
+   curl -fsS "http://127.0.0.1:11055/api/diagnostics/listening-ports"
+
+   # 按端口反查注册服务
+   curl -fsS "http://127.0.0.1:11055/api/services/by-port/{port}"
+
+   # 注册服务视角
+   curl -fsS "http://127.0.0.1:11055/api/services/{id}/port-status"
+
+   # 全部注册服务端口冲突
+   curl -fsS "http://127.0.0.1:11055/api/diagnostics/port-conflicts"
+
+   # PID 探活（替代 kill -0 + ps -p）
+   curl -fsS "http://127.0.0.1:11055/api/diagnostics/process/{pid}"
+
+   # 轮询直到端口空闲（替代 sleep; lsof || echo "port free"）
+   curl -fsS -X POST "http://127.0.0.1:11055/api/diagnostics/ports/{port}/wait-free" \
+     -H 'Content-Type: application/json' -d '{"timeout_ms":10000}'
    ```
+
+   **受控清理（仅 PolarProcess 托管范围，禁止裸 PID kill）：**
+
+   ```bash
+   # 清理本系统托管残留并确认端口空闲（替代 kill PID; sleep; lsof）
+   curl -fsS -X POST "http://127.0.0.1:11055/api/diagnostics/ports/{port}/clear-and-verify"
+
+   # 启动前端口卫生
+   curl -fsS -X POST "http://127.0.0.1:11055/api/services/{id}/ensure-port-ready"
+
+   # 停止并确认端口释放（替代 stop; sleep; lsof）
+   curl -fsS -X POST "http://127.0.0.1:11055/api/services/{id}/stop-and-verify"
+
+   # 端口就绪后重启（替代 kill; sleep; lsof; restart 链）
+   curl -fsS -X POST "http://127.0.0.1:11055/api/services/{id}/restart-clean"
+   ```
+
+   完整契约见 `Agent_core/.cursor/skills/polar-runtime-governance/references/runtime-contract.md` §4.1。
+
 3. **launchctl 状态**：检查 launchd 服务加载状态
    ```bash
    launchctl list | grep "{label}"
@@ -317,6 +365,37 @@ Agent 在诊断服务问题时，**必须按以下优先级获取信息**：
    ```bash
    tail -20 /path/to/error.log
    ```
+
+### Hook 常见拦截场景与正确路径
+
+Cursor `polar-runtime-guard` 会拦截含 `kill` / `lsof` / `pkill` / `&` 的复合 shell。以下三类**不在 PolarProcess 管辖范围**，但仍频繁触发 Hook；Agent 须走对应替代路径，禁止在脚本里裸写 `kill`/`lsof`。
+
+#### A. Safari / safaridriver（浏览器驱动，非托管持久服务）
+
+| 被拦模式 | 正确路径 |
+|---------|---------|
+| `kill $(pgrep -f safaridriver …)` | 若已注册 PolarProcess：按 **service id** 调 `stop`/`restart`；否则用 **bb-browser** skill / Safari MCP 结束会话，并向用户说明需手动放行 |
+| `safaridriver --port 4445 &` | 禁止 Agent 后台直启；浏览器自动化走 PolarClaw computer-use 或 Safari MCP |
+| `lsof -iTCP:4445` | `curl -fsS http://127.0.0.1:11055/api/diagnostics/ports/4445`（只读） |
+
+#### B. cursor-agent CLI 僵尸（Hub 拉起的一次性进程，非 PolarProcess 托管）
+
+| 被拦模式 | 正确路径 |
+|---------|---------|
+| `pkill -f "cursor-agent"`（裸写） | 使用 **`Agent_core/scripts/cli-probe.sh`** 或 **`agent-worker.sh`**（Hook 白名单）；Hub `spawn-queue` 也会定期 sweep 孤儿 |
+| `kill -0` / `ps -p` 探活 | `curl -fsS http://127.0.0.1:11055/api/diagnostics/process/{pid}` |
+| 需要重启 RR 会话 | 走 Hub RR API / `rr-orchestrator` skill，不要 shell 杀 cursor-agent |
+
+#### C. Git 锁文件（文件锁诊断，非端口/进程治理）
+
+| 被拦模式 | 正确路径 |
+|---------|---------|
+| `lsof .git/index.lock` + `kill` 复合命令 | **禁止**；遵循 P13：先等 git 进程结束，不强制删锁 |
+| 只读检查锁是否存在/时效 | `test -f .git/index.lock && stat -f '%Sm %z bytes' .git/index.lock` |
+| 是否有 git 在跑 | `pgrep -fl '[g]it'`（单一只读命令，无 kill 复合） |
+| 确认为陈旧空锁且无 git 进程 | 可 `rm -f .git/index.lock`（一次性，勿写入 reusable 脚本；参考 `PolarFlow/scripts/knowlever-maintain.sh` 运维模式） |
+
+> **边界**：以上三类若将来注册为 PolarProcess 托管服务（含 `polaris.json` + `POST /api/services/register`），则生命周期回归 PolarProcess API，不再适用本小节例外。
 
 ### 日志时效性验证
 
@@ -368,17 +447,27 @@ SOTAgent **只提供前端面板**（console :4880）方便用户查看，不是
 **PolarProcess HTTP API**：
 
 ```bash
-# 停止服务（优雅退出，状态落库）
+# 生命周期
 POST http://127.0.0.1:11055/api/services/:id/stop
-
-# 启动服务
 POST http://127.0.0.1:11055/api/services/:id/start
-
-# 重启服务（先停后启）
 POST http://127.0.0.1:11055/api/services/:id/restart
+POST http://127.0.0.1:11055/api/services/:id/stop-and-verify      # stop + 确认端口释放
+POST http://127.0.0.1:11055/api/services/:id/restart-clean         # ensure-port-ready + restart
+POST http://127.0.0.1:11055/api/services/:id/ensure-port-ready
 
-# 查询所有服务状态
-GET http://127.0.0.1:11055/api/services
+# 查询
+GET  http://127.0.0.1:11055/api/services
+GET  http://127.0.0.1:11055/api/services/by-port/:port
+
+# 诊断（安全替代 lsof/kill，详见 P26 §Hook 常见拦截场景）
+GET  http://127.0.0.1:11055/api/diagnostics/ports/:port
+GET  http://127.0.0.1:11055/api/diagnostics/ports-batch?ports=…
+GET  http://127.0.0.1:11055/api/diagnostics/listening-ports
+GET  http://127.0.0.1:11055/api/diagnostics/port-conflicts
+GET  http://127.0.0.1:11055/api/diagnostics/process/:pid
+POST http://127.0.0.1:11055/api/diagnostics/ports/:port/wait-free
+POST http://127.0.0.1:11055/api/diagnostics/ports/:port/clear-own
+POST http://127.0.0.1:11055/api/diagnostics/ports/:port/clear-and-verify
 ```
 
 **端口分配**（真实存在的两个入口，二选一）：
