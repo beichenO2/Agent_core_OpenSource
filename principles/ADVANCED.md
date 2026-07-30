@@ -368,13 +368,13 @@ Agent 在诊断服务问题时，**必须按以下优先级获取信息**：
 
 ### Hook 常见拦截场景与正确路径
 
-Cursor `polar-runtime-guard` 会拦截含 `kill` / `lsof` / `pkill` / `&` 的复合 shell。以下三类**不在 PolarProcess 管辖范围**，但仍频繁触发 Hook；Agent 须走对应替代路径，禁止在脚本里裸写 `kill`/`lsof`。
+Cursor `polar-runtime-guard` 会拦截含 `kill` / `lsof` / `pkill` / `&` 的复合 shell。策略为 **deny-once-then-ask**：同命令指纹在 TTL（默认 30 分钟）内**首次 `deny`**（硬拒绝 + `agent_message` 促改写，避免失忆后卡在确认弹窗），**再次才 `ask`** 交用户确认例外。以下三类**不在 PolarProcess 管辖范围**，但仍频繁触发 Hook；Agent 须走对应替代路径，禁止在脚本里裸写 `kill`/`lsof`。
 
 #### A. Safari / safaridriver（浏览器驱动，非托管持久服务）
 
 | 被拦模式 | 正确路径 |
 |---------|---------|
-| `kill $(pgrep -f safaridriver …)` | 若已注册 PolarProcess：按 **service id** 调 `stop`/`restart`；否则用 **bb-browser** skill / Safari MCP 结束会话，并向用户说明需手动放行 |
+| `kill $(pgrep -f safaridriver …)` | 若已注册 PolarProcess：按 **service id** 调 `stop`/`restart`；否则用 **bb-browser** skill / Safari MCP 结束会话（勿原样重试被 deny 的 kill；确属例外再说明理由等第二次 ask 放行） |
 | `safaridriver --port 4445 &` | 禁止 Agent 后台直启；浏览器自动化走 PolarClaw computer-use 或 Safari MCP |
 | `lsof -iTCP:4445` | `curl -fsS http://127.0.0.1:11055/api/diagnostics/ports/4445`（只读） |
 
@@ -427,14 +427,15 @@ mv /path/to/service.log /path/to/service.log.$(date +%Y%m%d) && touch /path/to/s
 
 ## P27. 服务生命周期管理规范（硬约束）
 
-Polarisor 生态的进程与端口各有**唯一权威**：
+**PolarManager** = **PolarPort** + **PolarProcess** + **PolarBudget**。这是 Polarisor 管理生态项目的「三巨头」：端口、进程生命周期、CPU 预算/护核。PolarPrivate / PolarOps / SOTAgent 是相邻基础设施，不属于 PolarManager。
 
 | 职责 | 唯一权威 | 端口 | SOTAgent 的角色 |
 |------|----------|------|----------------|
-| 端口分配 | **PolarPort** | :11050 | 无（仅 console 展示） |
-| 进程启/停/重启/守护 | **PolarProcess** | :11055 | 无（`/api/services/*` 仅 facade 透传到 PolarProcess） |
+| 端口分配 | **PolarPort**（PolarManager） | :11050 | 无（仅 console 展示） |
+| 进程启/停/重启/守护 | **PolarProcess**（PolarManager） | :11055 | 无（`/api/services/*` 仅 facade 透传到 PolarProcess） |
+| CPU 预算 / lease / QoS 降级 | **PolarBudget**（PolarManager） | :11060 | 无 |
 
-SOTAgent **只提供前端面板**（console :4880）方便用户查看，不是服务与端口的操作权威。所有服务的启/停/重启**必须**经过 PolarProcess，所有端口**必须**经过 PolarPort 分配；禁止直接对进程发送 `kill`/`pkill`/`SIGTERM` 信号，禁止硬编码端口。
+SOTAgent **只提供前端面板**（console :4880）方便用户查看，不是操作权威。所有服务的启/停/重启**必须**经过 PolarProcess，所有端口**必须**经过 PolarPort 分配，本地 CPU 密集并行**必须**经 PolarBudget（不可用时 fail-open 并标注 `budget_unavailable`）；禁止直接对进程发送 `kill`/`pkill`/`SIGTERM` 信号，禁止硬编码端口，禁止自建第二套 CPU 调度器。
 
 ### 唯一合法操作路径
 
