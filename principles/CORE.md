@@ -208,15 +208,16 @@ Agent 产出的信息按类型写入**对应项目**的指定位置。注意："
 
 ✅ 鼓励大量使用 Cursor `Task` 工具派发 SubAgent，把可独立完成的工作下放给廉价模型，节约主 Agent 上下文 tokens。
 
-- 代码/文件分析、调研、检索任务 → 子代理模型 `grok-4.5-fast-xhigh`
+- 代码/文件分析、调研、检索任务 → 子代理模型 `cursor-grok-4.5-high-fast`
 - 代码编写/修改任务 → 子代理模型 `composer-2.5-fast`
+- 模型 slug 以宿主当前可用列表为准；列表中不存在时回退 `inherit` 并在派发信封注明
 - 主 Agent 职责：任务编排、prompt 拆解（遵循 P24 独立自包含）、验收产出、与用户/Hub 交互
 - 独立任务应并行派发多个 SubAgent
 - ⛔ 验收不可下放：passed/failed 结论须主 Agent 亲自确认关键验证结果
 
 ## P13. 项目锁保护
 
-> 实现：`PolarClaw/src/sdk/project-lock.ts`。多 Agent 并发操作同一项目时防冲突。
+> 原实现 `PolarClaw/src/sdk/project-lock.ts` 随 PolarClaw 于 2026-08-11 退役（见根仓 ARCHIVED.md）；锁文件约定本身仍然有效，多 Agent 并发操作同一项目时防冲突。
 
 - ⛔ 禁止删除非本 Agent 持有的 `.lobster-lock` 文件
 - ✅ 遇到 `.git/index.lock` 等 Git 内部锁文件时，等待进程结束，不强制删除

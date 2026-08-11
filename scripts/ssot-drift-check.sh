@@ -12,7 +12,7 @@ BASE_DIR="${HOME}/Polarisor"
 JSON_MODE=0
 [ "${1:-}" = "--json" ] && JSON_MODE=1
 
-PROJECTS=(PolarClaw PolarCopilot PolarPrivate SOTAgent Clock AutoOffice KnowLever digist PolarSync PolarMemory PolarPort PolarOps PolarProcess PolarPilot)
+PROJECTS=(PolarCopilot PolarPrivate SOTAgent Clock AutoOffice KnowLever digist PolarSync PolarMemory PolarPort PolarProcess PolarBudget PolarFlow)
 
 NOW_EPOCH=$(date +%s)
 RESULTS=()

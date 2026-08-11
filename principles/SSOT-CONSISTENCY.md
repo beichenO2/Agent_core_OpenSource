@@ -114,8 +114,9 @@ Agent 工作流中的自动触发点：
 ### 解决方案：SOUL.md 声明式生成
 
 ```bash
-# SOTAgent 定期从各项目的 PolarSoul.md 聚合生成 PolarClaw 的 PolarSkills/SOUL.md
+# SOTAgent 定期从各项目的 PolarSoul.md 聚合生成根仓 PolarSoul.md
 # 而不是手动维护
+# （原聚合目标 PolarClaw 的 PolarSkills/SOUL.md 已随 PolarClaw 于 2026-08-11 退役）
 
 聚合逻辑：
 1. 扫描 Polarisor/ 下所有 PolarSoul.md

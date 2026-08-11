@@ -9,12 +9,13 @@ Polarisor 的 LLM 调用链路涉及两个独立的计费层。每层有不同�
 
 ### 覆盖范围
 - Cursor IDE（Claude Code 模式）
-- PolarClaw（飞书入口 + IDE 插件入口）
 - PolarCopilot（IDE Agent）
 
-注意：VSCode（Claude Code）与 PolarClaw 在计费上是同一层——都消耗 Cursor 配额。
+注意：VSCode（Claude Code）与 Cursor IDE 在计费上是同一层——都消耗 Cursor 配额。
 
-### PolarClaw 一体两面架构
+### PolarClaw 一体两面架构（已退役）
+> PolarClaw 已于 2026-08-11 退役（见根仓 `ARCHIVED.md`），本节保留作为双入口计费的设计参考，不再描述现行链路。
+
 PolarClaw 有两个入口，但共享同一个 LLM Proxy：
 - **飞书入口**：面向产品经理，提供自然语言交互
 - **IDE 插件入口**：面向开发者，提供代码辅助

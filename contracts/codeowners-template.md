@@ -15,8 +15,8 @@
 /adapters/              @<project-owner-agent> @other-agents
 /tests/contracts/       @<project-owner-agent> @other-agents
 
-# 项目龙虾目录：PolarPilot 写
-/lobster/               @polarpilot-agent
+# 项目龙虾目录：原由 PolarPilot 写，PolarPilot 已退役 2026-08-11（见根仓 ARCHIVED.md），暂无 owner
+/lobster/
 ```
 
 ## 使用说明

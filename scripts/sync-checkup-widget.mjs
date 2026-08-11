@@ -11,13 +11,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SRC = path.join(ROOT, 'PolarCopilot/web/checkup-widget/dist/checkup-widget.es.js')
 
 const WIDGET_TARGETS = [
-  'PolarUI/public/checkup-widget',
   'Clock/frontend/public/checkup-widget',
   'SOTAgent/console/public/checkup-widget',
   'KnowLever/web/checkup-widget',
   'PolarDesign/gallery/checkup-widget',
   'tqsdk/trading-platform/apps/web/public/checkup-widget',
-  'PolarClaw/web/public/checkup-widget',
   'PolarCopilot/hub/static/checkup-widget',
 ]
 
@@ -26,7 +24,7 @@ const HUB_EMBED_PROJECTS = [
   { project: 'PolarPort', note: '端口注册 API — 管理入口' },
   { project: 'PolarMemory', note: '记忆块 API — 控制台入口' },
   { project: 'PolarProcess', note: '进程/watchdog API — 监控入口' },
-  { project: 'PolarPilot', note: 'Pilot 状态 API — 状态入口' },
+  { project: 'PolarBudget', note: 'CPU 预算/lease API — 预算入口' },
   { project: 'digist', note: 'DIGiST API — Web 采集入口' },
   { project: 'AutoOffice', note: '文档生成 API — 预览/报告入口' },
 ]

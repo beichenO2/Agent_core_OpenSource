@@ -7,8 +7,8 @@
 | 消费端 | 机制 |
 |--------|------|
 | Cursor Agent | 用户或路由 Skill 指向 `read SKILL.md` |
-| PolarUI Planner | 节点参数 `skill_id` → `selectSkill(id)` |
-| PolarClaw | adapter 按需拉取 |
+| PolarFlow | 节点参数 `skill_id` → `selectSkill(id)` |
+| PolarCopilot Hub | adapter 按需拉取 |
 | trigger-engine | `selectSkill('skill-pc-solo-web')` |
 
 ## 文件格式

@@ -9,7 +9,7 @@
 #   改 Skill = 改 Git 仓库内的原文件 → commit+push → 跑本脚本
 #   SSoT: PolarCopilot/.cursor/skills/  （PC Agent 模式）
 #         Agent_core/principles/         （共享约束）
-#   派生: ~/.codex/skills/ (symlink)、~/.cursor/skills/ (symlink)、PolarUI/skills/ (备份复制)
+#   派生: ~/.codex/skills/ (symlink)、~/.cursor/skills/ (symlink)
 #
 # 清理说明：
 #   AFK：afk（路由+共享库）+ afk-start + afk-solo + afk-go。
@@ -121,28 +121,7 @@ for skills_root in "$CODEX_SKILLS" "$CURSOR_SKILLS"; do
   done
 done
 
-# ──────────────────────────────────────────────────
-# 3. PolarUI skills/ 备份同步（.cursor/skills → skills/）
-# ──────────────────────────────────────────────────
-
-POLARUI_SSOT="$POLARISOR_ROOT/PolarUI/.cursor/skills"
-POLARUI_BACKUP="$POLARISOR_ROOT/PolarUI/skills"
-
-if [ -d "$POLARUI_SSOT" ] && [ -d "$POLARUI_BACKUP" ]; then
-  ui_synced=0
-  for skill_dir in "$POLARUI_SSOT"/*/; do
-    skill_name=$(basename "$skill_dir")
-    if [ -f "$skill_dir/SKILL.md" ]; then
-      mkdir -p "$POLARUI_BACKUP/$skill_name"
-      if ! diff -q "$skill_dir/SKILL.md" "$POLARUI_BACKUP/$skill_name/SKILL.md" >/dev/null 2>&1; then
-        cp "$skill_dir/SKILL.md" "$POLARUI_BACKUP/$skill_name/SKILL.md"
-        echo "  UI-SYNC: $skill_name"
-        ((ui_synced++))
-      fi
-    fi
-  done
-  [ $ui_synced -eq 0 ] && echo "  PolarUI 备份已同步，无变化"
-fi
+# 原第 3 步「PolarUI skills/ 备份同步」随 PolarUI 于 2026-08-11 退役移除（见根仓 ARCHIVED.md）。
 
 echo ""
 echo "=== 完成 ==="

@@ -375,7 +375,7 @@ Cursor `polar-runtime-guard` 会拦截含 `kill` / `lsof` / `pkill` / `&` 的复
 | 被拦模式 | 正确路径 |
 |---------|---------|
 | `kill $(pgrep -f safaridriver …)` | 若已注册 PolarProcess：按 **service id** 调 `stop`/`restart`；否则用 **bb-browser** skill / Safari MCP 结束会话（勿原样重试被 deny 的 kill；确属例外再说明理由等第二次 ask 放行） |
-| `safaridriver --port 4445 &` | 禁止 Agent 后台直启；浏览器自动化走 PolarClaw computer-use 或 Safari MCP |
+| `safaridriver --port 4445 &` | 禁止 Agent 后台直启；浏览器自动化走 **bb-browser** skill（Safari + AppleScript）或 Safari MCP |
 | `lsof -iTCP:4445` | `curl -fsS http://127.0.0.1:11055/api/diagnostics/ports/4445`（只读） |
 
 #### B. cursor-agent CLI 僵尸（Hub 拉起的一次性进程，非 PolarProcess 托管）
@@ -427,7 +427,7 @@ mv /path/to/service.log /path/to/service.log.$(date +%Y%m%d) && touch /path/to/s
 
 ## P27. 服务生命周期管理规范（硬约束）
 
-**PolarManager** = **PolarPort** + **PolarProcess** + **PolarBudget**。这是 Polarisor 管理生态项目的「三巨头」：端口、进程生命周期、CPU 预算/护核。PolarPrivate / PolarOps / SOTAgent 是相邻基础设施，不属于 PolarManager。
+**PolarManager** = **PolarPort** + **PolarProcess** + **PolarBudget**。这是 Polarisor 管理生态项目的「三巨头」：端口、进程生命周期、CPU 预算/护核。PolarPrivate / SOTAgent 是相邻基础设施，不属于 PolarManager。
 
 | 职责 | 唯一权威 | 端口 | SOTAgent 的角色 |
 |------|----------|------|----------------|
@@ -497,7 +497,7 @@ const port = await claimPort({ service: 'my-service', project: 'MyProject', pref
 ### auto_start 服务行为约定
 
 - `auto_start: true` 的服务由 PolarProcess Watchdog 自动管理（30s 健康检查，读各项目 `polaris.json` 的 `service_management.health_endpoint`），正常情况下不需人工干预
-- 服务崩溃后自动重试；crash loop（5 分钟内 ≥10 次重启）检测后停止机械重启，发 lobster-event 升级 PolarPilot Agentic 修复
+- 服务崩溃后自动重试；crash loop（5 分钟内 ≥10 次重启）检测后停止机械重启，升级为 SOTAgent 告警等待人工/Agent 介入
 - **`polaris.json` 的 `health_endpoint` 必须与服务实际监听端口一致**——Watchdog 以它为准，写错会导致健康误判与反复重启
 - 确需人工介入时，**必须**通过 PolarProcess API 操作，禁止直接杀进程
 

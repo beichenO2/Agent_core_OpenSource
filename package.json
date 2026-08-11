@@ -1,7 +1,7 @@
 {
   "name": "agent_core",
   "version": "1.0.0",
-  "description": "Agent_core is the canonical source for all Agent behavior rules shared across PolarCopilot, PolarPilot, and PolarClaw. Every Agent form inherits its principles, protocols, and workflows from this project.",
+  "description": "Agent_core is the canonical source for all Agent behavior rules shared across PolarCopilot, Cursor/Codex IDE agents, and PolarFlow. Every Agent form inherits its principles, protocols, and workflows from this project.",
   "main": "index.js",
   "directories": {
     "test": "tests"

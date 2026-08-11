@@ -19,7 +19,7 @@ if [ ! -f "$TEMPLATE" ]; then
   exit 1
 fi
 
-PROJECTS=(PolarClaw SOTAgent PolarCopilot Clock KnowLever PolarDesign PolarMemory PolarOps PolarPort PolarPrivate PolarProcess PolarSync tqsdk digist AutoOffice PolarPilot)
+PROJECTS=(SOTAgent PolarCopilot Clock KnowLever PolarDesign PolarMemory PolarPort PolarPrivate PolarProcess PolarBudget PolarFlow PolarSync tqsdk digist AutoOffice)
 
 INSTALLED=0
 for PROJECT in "${PROJECTS[@]}"; do

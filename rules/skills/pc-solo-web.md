@@ -21,7 +21,7 @@ covers:
 
 ## 核心约束
 
-1. ✅ 鼓励 SubAgent / Cursor Task（P12）：分析调研用 `grok-4.5-fast-xhigh`，编码用 `composer-2.5-fast`；Hub 交互与验收不下放
+1. ✅ 鼓励 SubAgent / Cursor Task（P12）：分析调研用 `cursor-grok-4.5-high-fast`，编码用 `composer-2.5-fast`；Hub 交互与验收不下放
 2. `setup({})` 只注册 Agent，不创建首条 prompt；**setup 后 `hub_status`**
 3. **Turn 结束**才 `send_prompt` + `check_hub`（§0.4 对齐/调研/执行/阻塞；禁止干活中途发 Hub）
 4. `send_prompt` 409 → 只 `check_hub`，禁止只回 Cursor（§0.5）
