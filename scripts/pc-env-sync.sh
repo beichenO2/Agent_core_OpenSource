@@ -145,37 +145,29 @@ pc_run_migrations() {
 # Waits up to 30s for service readiness.
 pc_restart_services() {
   local PROJECT_DIR="${1:?Usage: pc_restart_services <project_dir>}"
-  local SERVICE_ID POLARPROCESS_URL
-  POLARPROCESS_URL="${POLARPROCESS_URL:-http://127.0.0.1:11055}"
-  SERVICE_ID=$(_read_service_management "$PROJECT_DIR" "service_id")
+  local CMD
+  CMD=$(_read_service_management "$PROJECT_DIR" "restart_command")
 
-  if [ -n "$SERVICE_ID" ]; then
-    if curl -fsS --max-time 3 "$POLARPROCESS_URL/api/health" >/dev/null 2>&1; then
-      echo "[pc-env-sync] Restarting via PolarProcess: $SERVICE_ID"
-      if curl -fsS -X POST "$POLARPROCESS_URL/api/services/${SERVICE_ID}/restart"; then
-        echo "[pc-env-sync] OK: PolarProcess restart invoked"
-      else
-        echo "[pc-env-sync] FAIL: PolarProcess restart failed (exit code: $?)"
-        return 1
-      fi
+  if [ -z "$CMD" ]; then
+    # Try start_command as fallback
+    local START_CMD
+    START_CMD=$(_read_service_management "$PROJECT_DIR" "start_command")
+    if [ -n "$START_CMD" ]; then
+      echo "[pc-env-sync] INFO: no restart_command, inferring from start_command"
+      # Attempt to kill existing process, then start
+      CMD="pkill -f \"$START_CMD\" 2>/dev/null; sleep 1; $START_CMD"
     else
-      echo "[pc-env-sync] FAIL: PolarProcess unavailable; refusing pkill/kill fallback for $SERVICE_ID" >&2
-      return 1
-    fi
-  else
-    local CMD
-    CMD=$(_read_service_management "$PROJECT_DIR" "restart_command")
-    if [ -z "$CMD" ]; then
-      echo "[pc-env-sync] SKIP: no service_id or restart_command in polaris.json"
+      echo "[pc-env-sync] SKIP: no restart_command or start_command in polaris.json"
       return 0
     fi
-    echo "[pc-env-sync] Restarting services (legacy restart_command): $CMD"
-    if (cd "$PROJECT_DIR" && eval "$CMD"); then
-      echo "[pc-env-sync] OK: restart command executed"
-    else
-      echo "[pc-env-sync] FAIL: restart command failed (exit code: $?)"
-      return 1
-    fi
+  fi
+
+  echo "[pc-env-sync] Restarting services: $CMD"
+  if (cd "$PROJECT_DIR" && eval "$CMD"); then
+    echo "[pc-env-sync] OK: restart command executed"
+  else
+    echo "[pc-env-sync] FAIL: restart command failed (exit code: $?)"
+    return 1
   fi
 
   # Wait for service readiness (up to 30s)

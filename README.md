@@ -1,6 +1,6 @@
 # Agent_core — Agent 设计规则与协议
 
-> **一句话**：Polarisor 生态所有 Agent 形态的**统一逻辑源（SSoA）**，解决 Agent 行为约束分散在多个 Skill 中、复制粘贴导致规则漂移的问题——用 P 原则 + 嵌入式协议 + 引用语法，让 PolarCopilot、Cursor/Codex IDE Agent、PolarFlow 共享同一套可版本化的设计依赖。
+> **一句话**：Polarisor 生态所有 Agent 形态的**统一逻辑源（SSoA）**，解决 Agent 行为约束分散在多个 Skill 中、复制粘贴导致规则漂移的问题——用 P 原则 + 嵌入式协议 + 引用语法，让 PolarCopilot、PolarPilot、PolarClaw 共享同一套可版本化的设计依赖。
 
 GitHub: https://github.com/beichenO2/Agent_core
 
@@ -37,7 +37,7 @@ Agent 行为约束曾分散在 pc-solo-web、pc-yolo、pc-main 等多个 Skill �
 
 ### 为什么协议外置到 `protocols/`，而不是内嵌在 Skill 里？
 
-Hub 初始化（Proto-A）、Agent 注册（Proto-B）、Git 交付（Proto-C）、YOLO 对齐（Proto-G）等 **11** 个协议被 PolarCopilot / Cursor·Codex IDE Agent / PolarFlow 共用。外置后 Skill 只引用 `[Agent_core:Proto-C]`，bash 实现统一在 `scripts/`，避免 N 份复制。
+Hub 初始化（Proto-A）、Agent 注册（Proto-B）、Git 交付（Proto-C）、YOLO 对齐（Proto-G）等 **11** 个协议被 PolarCopilot / PolarPilot / PolarClaw 共用。外置后 Skill 只引用 `[Agent_core:Proto-C]`，bash 实现统一在 `scripts/`，避免 N 份复制。
 
 ---
 
@@ -51,7 +51,7 @@ Hub 初始化（Proto-A）、Agent 注册（Proto-B）、Git 交付（Proto-C）
 | RetryLoop | 默认 **max_retries=7**；轮内迭代 + 轮间刷新，Validator 对齐用户需求 SSOT |
 | 共享脚本 | **42** 个（SSoT 漂移检查、port-claim、precommit、Hub 调用 …） |
 | 契约 | **10** 个 Schema / 规范文件（rule-reference / checkup-event / thinking-pattern …） |
-| 适配器 | **1** 种 Agent 形态（Cursor）via `rules/engine/adapters/`（Pilot / Claw / PolarUI 适配器随 2026-08-11 退役移除） |
+| 适配器 | **3** 种 Agent 形态（Copilot / Pilot / Claw）via `adapters/` |
 | 需求完成度 | R1–R4 共 **4** 个需求域 **100%** 完成（SSoT: `polaris.json` v1.0.0） |
 
 ---
@@ -143,10 +143,9 @@ YOLO 对齐与 RetryLoop 见 [Agent_core:Proto-G]。
 |------|------|------|
 | 所有 Polarisor 项目 | 规则消费者 | 通过 `[Agent_core:RuleID]` 引用，禁止复制全文 |
 | [PolarCopilot](https://github.com/beichenO2/PolarCopilot) | IDE Agent 形态 | `adapters/` + pc-* Skills 引用 P 原则 |
-| [PolarFlow](https://github.com/beichenO2/PolarFlow) | 工作流形态 | FSM 工作流引擎消费规则 |
+| [PolarPilot](https://github.com/beichenO2/PolarPilot) | 自主规划形态 | thinking-pattern schema 校验 |
+| [PolarClaw](https://github.com/beichenO2/PolarClaw) | 龙虾 Agent 形态 | Lobster 事件契约对齐 |
 | [PolarPort](https://github.com/beichenO2/PolarPort) | 端口分配 | `scripts/port-claim.sh` 共享 |
-
-> PolarPilot（自主规划形态）与 PolarClaw（龙虾 Agent 形态）已于 2026-08-11 退役，见根仓 ARCHIVED.md。
 
 > Agent_core 本身**无外部项目依赖**（规范层），但被生态内所有 Agent 形态消费。
 

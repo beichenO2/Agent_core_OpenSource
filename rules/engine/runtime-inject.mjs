@@ -1,5 +1,5 @@
 /**
- * 纯 JS 规则触发引擎 — PolarCopilot / Cursor / CLI 运行时消费
+ * 纯 JS 规则触发引擎 — PolarClaw / PolarPilot / CLI 运行时消费
  * （不依赖 .ts 编译；与 trigger-engine.ts 语义对齐）
  */
 import { readFileSync, readdirSync } from 'node:fs'

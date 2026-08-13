@@ -471,7 +471,7 @@ const health = await llm.healthCheck();
 | PolarPort | 11050 | 端口分配唯一权威 |
 | PolarProcess | 11055 | 进程生命周期唯一权威 |
 | PolarPrivate | 12790 | LLM 代理 + 密钥管理 |
-| PolarBudget | 11060 | CPU 预算 / lease / QoS 唯一权威 |
+| PolarClaw | 3910 | Agent 操作系统后端 |
 | PolarCopilot Hub | 8040 | IDE Agent Web UI（MCP 通道入口） |
 
 > 上表仅为当前快照，端口可能因 PolarPort 重新分配而变化。**必须**通过 PolarPort API 查询，不能在代码中假设固定端口。preferred 端口必须以 0/5 结尾。
@@ -532,7 +532,7 @@ GET http://127.0.0.1:12790/health → { "status": "ok", "vault_unlocked": true }
 
 ## 协议 P：TaskContract（任务契约系统）
 
-TaskContract 是 Agent 运行时的核心机制，用于在长对话中防止灾难性遗忘和逻辑链断裂。它独立于对话历史，每轮注入 system prompt，不受上下文压缩影响。（该机制原实现于 PolarClaw，PolarClaw 已于 2026-08-11 退役——见根仓 ARCHIVED.md——协议本身仍对各 Agent 形态有效。）
+TaskContract 是 PolarClaw Agent 运行时的核心机制，用于在长对话中防止灾难性遗忘和逻辑链断裂。它独立于对话历史，每轮注入 system prompt，不受上下文压缩影响。
 
 ### P1 — Contract 生命周期
 

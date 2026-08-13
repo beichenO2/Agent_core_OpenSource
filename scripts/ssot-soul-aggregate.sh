@@ -1,20 +1,19 @@
 #!/bin/bash
-# ssot-soul-aggregate.sh — Generate the root PolarSoul.md from all projects' PolarSoul.md
+# ssot-soul-aggregate.sh — Generate PolarClaw/PolarSkills/SOUL.md from all projects' PolarSoul.md
 #
 # Usage: bash Agent_core/scripts/ssot-soul-aggregate.sh [--dry-run]
 #
 # Scans all Polarisor projects, extracts key info from each PolarSoul.md,
-# and generates a unified ecosystem map for Agent system prompts.
-# (Former target PolarClaw/PolarSkills/SOUL.md retired 2026-08-11 — see root ARCHIVED.md.)
+# and generates a unified ecosystem map for PolarClaw's system prompt.
 
 set -euo pipefail
 
 BASE_DIR="${HOME}/Polarisor"
-TARGET="$BASE_DIR/PolarSoul.md"
+TARGET="$BASE_DIR/PolarClaw/PolarSkills/SOUL.md"
 DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
 
-PROJECTS=(PolarCopilot PolarPrivate SOTAgent Clock AutoOffice KnowLever digist PolarSync PolarMemory PolarPort PolarProcess PolarBudget PolarFlow)
+PROJECTS=(PolarClaw PolarCopilot PolarPrivate SOTAgent Clock AutoOffice KnowLever digist PolarSync PolarMemory PolarPort PolarOps PolarProcess PolarPilot)
 
 GENERATED=$(date '+%Y-%m-%d %H:%M')
 

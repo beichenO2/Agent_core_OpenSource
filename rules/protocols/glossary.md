@@ -30,5 +30,4 @@ priority: 5
 - 遇到专有名词或语音易错词时，读取 `Agent_core/reference/GLOSSARY.md`。
 - 「生态」= Polarisor 根目录及子项目集合；「编译」= 任务书编译（非代码编译）。
 - LLM = PolarPrivate Proxy 按次计费 API；VLM/ASR = 本机运行。
-- 常见纠错：No Liver→KnowLever，Polarizer→Polarisor，Digist→digist。
-- PolarClaw / PolarPilot / PolarOps / PolarUI 已于 2026-08-11 退役（见根仓 `ARCHIVED.md`），不再解析为现行项目。
+- 常见纠错：polar cloud→PolarClaw，No Liver→KnowLever，Polarizer→Polarisor，Digist→digist。

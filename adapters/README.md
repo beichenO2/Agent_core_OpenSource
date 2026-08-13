@@ -2,7 +2,7 @@
 
 Per-Agent-form adapter configurations that customize how Agent_core rules are applied.
 
-Each Agent form (PolarCopilot, Cursor/Codex IDE agents, PolarFlow) may have different:
+Each Agent form (PolarCopilot, PolarPilot, PolarClaw) may have different:
 - Input/output channels (Hub Web UI, CLI, IDE chat)
 - Available tools (Shell, MCP, Computer Use)
 - Execution constraints (interactive vs. autonomous)

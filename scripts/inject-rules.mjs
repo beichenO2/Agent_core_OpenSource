@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 通用规则注入 CLI — PolarCopilot / PolarFlow / 任意调用方
+ * 通用规则注入 CLI — PolarClaw / PolarPilot / 任意调用方
  * 用法:
  *   node inject-rules.mjs "用户消息文本"
  *   node inject-rules.mjs --adapter claw "git commit"
